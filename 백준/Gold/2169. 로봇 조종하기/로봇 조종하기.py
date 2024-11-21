@@ -1,36 +1,47 @@
-#2169. 로봇 조종하기(골2)
-#왼쪽, 오른쪽 아래쪽으로 이동 가능
-# 탐사한 지역 가치의 합이 최대가 되도록 하는 프로그램 작성
-#위에서 오는 것+ ( 왼쪽에서 오는 것 /오른쪽에서 오는 것)
-
+import sys
+input = sys.stdin.readline
+from collections import deque
 import copy
-n,m = map(int, input().split())
-data= [list(map(int, input().split())) for _ in range(n)]
 
-dp=[ [0]*m for _ in range(n)]
-# 첫행은 누적으로 dp채워주기
-dp[0]= copy.deepcopy(data[0])
+# NXM 배열
+N, M = map(int, input().split())
 
-for i in range(1,m):
-  dp[0][i]+=dp[0][i-1]
+mars = [list(map(int, input().split())) for _ in range(N)]
 
-for i in range(1, n):
-  tmp1=[0]*m # 왼쪽 > 오른쪽 최대값 
-  tmp2=[0]*m # 왼쪽 < 오른쪽 최대값
-  
-  for j in range(m):
-  
-    #첫번째 칸은 그냥 갱신
-    if j==0: 
-      tmp1[j]=data[i][j]+ dp[i-1][j] 
-      tmp2[m-1-j]= data[i][m-1-j]+ dp[i-1][m-1-j]
-      continue
+dp = [[-999999999999999]*M for _ in range(N)]
+visited = [[False]*M for _ in range(N)]
 
-    tmp1[j]=data[i][j]+ max(dp[i-1][j], tmp1[j-1])
-    tmp2[m-1-j]= data[i][m-1-j]+ max(dp[i-1][m-1-j],tmp2[m-j])
-  
-  #tmp1과 tmp2 중 최대값을 dp에 갱신
-  tmp=[max(tmp1[i], tmp2[i]) for i in range(m)]
-  dp[i]= copy.deepcopy(tmp)
+# 왼쪽, 오른쪽, 아래
+dir = [[0, -1], [0, 1], [1, 0]]
 
-print(dp[n-1][m-1])
+
+startcount = mars[0][0]
+stack = deque([(1, 0)])
+dp[0][0] = startcount
+
+for j in range(1, M):
+    dp[0][j] = dp[0][j-1] + mars[0][j]
+#     if N > 1:
+#         dp[1][j] = dp[0][j] + mars[1][j]
+#
+# if N > 1:
+#     dp[1][0] = dp[0][0] + mars[1][0]
+#     dp[1][-1] = dp[0][-1] + mars[1][-1]
+
+for i in range(1, N):
+    listleft = [-99999999999999999999]*M
+    listright = [-9999999999999999999]*M
+
+    for j in range(M):
+        if j == 0:
+            listleft[j] = dp[i-1][0]+mars[i][0]
+            listright[M-1] = dp[i-1][M-1]+mars[i][M-1]
+            continue
+
+        listleft[j] = mars[i][j] + max(dp[i-1][j], listleft[j-1])
+        listright[M-1-j] = mars[i][M-1-j] + max(dp[i-1][M-1-j], listright[M-j])
+
+    temp = [max(listleft[j], listright[j]) for j in range(M)]
+    dp[i] = copy.deepcopy(temp)
+
+print(dp[N-1][M-1])
